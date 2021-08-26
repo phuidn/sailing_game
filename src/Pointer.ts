@@ -75,14 +75,23 @@ class Pointer extends Entity {
             this.tweening = true;
         }
 
+
         this.x = (this.player.x + 0.5 * player2target.x);
         this.y = (this.player.y + 0.5 * player2target.y);
+
         const xMin = this.gameScene.camera.pivot.x + 50;
         const xMax = xMin + 700;
         const yMin = this.gameScene.camera.pivot.y + 50;
         const yMax = yMin + 500;
-        this.x = Math.max(xMin, Math.min(xMax, this.x));
-        this.y = Math.max(yMin, Math.min(yMax, this.y));
+
+        let factor = 1.0;
+        factor = Math.min(factor, (this.x > xMax) ? (xMax - this.player.x) / (this.x - this.player.x) : 1.0);
+        factor = Math.min(factor, (this.y > yMax) ? (yMax - this.player.y) / (this.y - this.player.y) : 1.0);
+        factor = Math.min(factor, (this.x < xMin) ? (this.player.x - xMin) / (this.player.x - this.x) : 1.0);
+        factor = Math.min(factor, (this.y < yMin) ? (this.player.y - yMin) / (this.player.y - this.y) : 1.0);
+
+        this.x = this.player.x + 0.5 * factor * player2target.x;
+        this.y = this.player.y + 0.5 * factor * player2target.y;
 
         this.rotation = Math.atan2(player2target.y, player2target.x);
     }

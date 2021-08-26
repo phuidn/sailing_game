@@ -1,17 +1,13 @@
-#version 300 es
-
 precision highp float;
 uniform float aa_width;
 uniform float time;
 
-in vec2  vUv;
-in float vIndex;
-in vec4  vColour;
-in vec3  vMiscA;
-in vec4  vMiscB;
-in vec4  vMiscC;
-
-out vec4 fragColour;
+varying vec2  vUv;
+varying float vIndex;
+varying vec4  vColour;
+varying vec3  vMiscA;
+varying vec4  vMiscB;
+varying vec4  vMiscC;
 
 // sea
 const int ITER_FRAGMENT = 3;
@@ -28,7 +24,7 @@ float hash( vec2 p ) {
 	float h = dot(p,vec2(127.1,311.7));	
     return fract(sin(h)*43758.5453123);
 }
-float noise( in vec2 p ) {
+float noise( vec2 p ) {
     vec2 i = floor( p );
     vec2 f = fract( p );	
 	vec2 u = f*f*(3.0-2.0*f);
@@ -90,7 +86,7 @@ vec4 outlined(vec4 col, vec4 outline_col, float val, float border_thickness)
     return line_col;
 }
 
-float triangleSDF( in vec2 p, in vec2 p0, in vec2 p1, in vec2 p2 )
+float triangleSDF( vec2 p, vec2 p0, vec2 p1, vec2 p2 )
 {
     vec2 e0 = p1-p0, e1 = p2-p1, e2 = p0-p2;
     vec2 v0 = p -p0, v1 = p -p1, v2 = p -p2;
@@ -131,7 +127,7 @@ float thickLineSDF(vec2 px_pos, vec2 p1, vec2 p2, float width)
     return max(long_dist, short_dist);
 }
 
-float circleArcSDF (in vec2 p, in float a0, in float a1, in float r )
+float circleArcSDF (vec2 p, float a0, float a1, float r )
 {
     float a = mod(atan(p.y, p.x), radians(360.));
 
@@ -274,5 +270,6 @@ void main()
         col.a *= smoothstep(-aa, aa, -dist);
     }
 
-    fragColour = premultiply(col);
+    gl_FragColor
+ = premultiply(col);
 }

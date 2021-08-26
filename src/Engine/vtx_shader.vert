@@ -1,23 +1,21 @@
-#version 300 es
-
 precision mediump float;
 
-in vec2  aVertexPosition;
-in vec2  aUv;
-in vec4  aColour;
-in vec4  aMiscA;
-in vec4  aMiscB;
-in vec4  aMiscC;
+attribute vec2  aVertexPosition;
+attribute vec2  aUv;
+attribute vec4  aColour;
+attribute vec4  aMiscA;
+attribute vec4  aMiscB;
+attribute vec4  aMiscC;
 
 uniform mat3 translationMatrix;
 uniform mat3 projectionMatrix;
 
-out vec2  vUv;
-out vec4  vColour;
-out float vIndex;
-out vec3  vMiscA;
-out vec4  vMiscB;
-out vec4  vMiscC;
+varying vec2  vUv;
+varying vec4  vColour;
+varying float vIndex;
+varying vec3  vMiscA;
+varying vec4  vMiscB;
+varying vec4  vMiscC;
 
 void main() {
     vUv = aUv;

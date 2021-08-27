@@ -61,7 +61,7 @@ float map_detailed(vec2 p, float seaHeight, float seaChoppy) {
 }
 
 // tracing
-vec3 getNormal(vec2 p, float eps, float seaHeight, float seaChoppy) {
+vec3 seaNormal(vec2 p, float eps, float seaHeight, float seaChoppy) {
     vec3 n;
     n.y = map_detailed(p, seaHeight, seaChoppy);    
     n.x = map_detailed(vec2(p.x+eps,p.y), seaHeight, seaChoppy) - n.y;
@@ -217,9 +217,9 @@ void main()
 
         vec2 uv = (vUv + offset) / 80.0;
 
-        float seaHeight = SEA_HEIGHT * windStrength / 384.;
+        float seaHeight = SEA_HEIGHT * 0.5 * (1.0 + windStrength / 384.);
         float seaChoppy = SEA_CHOPPY;
-        vec3 normal = getNormal(uv, 0.01, seaHeight, seaChoppy);
+        vec3 normal = seaNormal(uv, 0.01, seaHeight, seaChoppy);
 
         float thing = 0.4;
         float peakAmount = smoothstep(thing, thing*1.01, dot(normal.xz, windVec));
@@ -269,7 +269,22 @@ void main()
         float dist = circleArcSDF(pos, theta1, theta2, radius) - 0.5 * thickness;
         col.a *= smoothstep(-aa, aa, -dist);
     }
+    else if (vIndex == 8.0) // buoy
+    {
+        vec2 pos = vUv.xy - vMiscB.xy;
+        float radius = vMiscB.z;
 
-    gl_FragColor
- = premultiply(col);
+        float dist = length(pos) - radius;
+
+        vec3 normal = normalize(vec3(pos, sqrt(2.0 * radius * radius - dot(pos, pos))));
+        
+        float lightIntensity = 0.5 * (1.0-dot(LIGHT_DIR, normal));
+        lightIntensity =  (4.0 + floor(lightIntensity * 5.0)) / 8.0;
+        vec3 colour = col.rgb * lightIntensity;
+        // post
+        col = vec4(pow(colour,vec3(0.65)), 1.0);
+        col = outlined(col, vec4(0.2, 0.2, 0.2, 1.0), -dist, 3.0);
+    }
+
+    gl_FragColor = premultiply(col);
 }

@@ -6,6 +6,7 @@ import KeyListener from "./Engine/KeyListener";
 import { Scene } from "./Engine/Scene"
 import SDFContainer, { GenericSDFGeo, SDFBoat } from "./Engine/SDFContainer";
 import GameScene from "./GameScene";
+import Waypoint from "./Waypoint";
 
 function wrapAngle(angle: number, wrapPoint: number = 0) {
     angle += wrapPoint;
@@ -70,6 +71,9 @@ class PlayerBoat extends Entity {
 
     update(dt: number) {
         super.update(dt);
+
+        if (!this.gameScene.gameStarted)
+            return;
 
         const wind = this.gameScene.getWindAt(this.x, this.y);
         const relativeWind = new Point(wind.x - this.speed * Math.cos(this.rotation),
@@ -172,7 +176,7 @@ class PlayerBoat extends Entity {
     postUpdate() {
         let collides = this.collidesWithType("waypoint");
         collides.forEach(waypoint => {
-            this.gameScene.removeEntity(waypoint);
+            (waypoint as Waypoint).pop()
             this.gameScene.resolveWaypontCollected();
         });
     }

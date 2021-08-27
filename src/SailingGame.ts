@@ -8,7 +8,7 @@ class SailingGame extends Game {
         this._app.renderer.backgroundColor = 0xFF0f8799;
         let gameScene = new GameScene(this)
         this.scene = gameScene;
-        let spaceKey = new KeyListener(" ", 
+        let pauseKey = new KeyListener("Escape", 
         () => {
             if (!this.paused) {
                 this.pause();

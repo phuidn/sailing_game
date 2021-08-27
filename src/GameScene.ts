@@ -1,6 +1,8 @@
 import { Easing, Tween } from "@tweenjs/tween.js";
 import { Container, Point, Text } from "pixi.js";
+import ConfettiParticles from "./ConfettiParticles";
 import Game from "./Engine/Game";
+import KeyListener from "./Engine/KeyListener";
 import { Scene } from "./Engine/Scene";
 import SDFContainer, { GenericSDFGeo } from "./Engine/SDFContainer";
 import PlayerBoat from "./PlayerBoat";
@@ -25,6 +27,7 @@ class GameScene extends Scene {
     sceneHeight = 1600;
     seaShape: GenericSDFGeo;
     boatWake: WakeParticles;
+    confetti: ConfettiParticles;
     camera: Container;
     cameraSpeed: Point;
     pointer: Pointer;
@@ -35,12 +38,16 @@ class GameScene extends Scene {
     timerCounting: boolean;
     timerText: Text;
     introText: Text;
+    startText: Text;
+    buoyText: Text;
+    gameStarted: boolean;
+    startGameListener: KeyListener;
 
     constructor(game: Game) {
         super(game);
 
         this.gameTime = 0;
-        this.windSpeed = 256;
+        this.windSpeed = 0;
         
         let background = new SDFContainer(0,0);
 
@@ -56,7 +63,11 @@ class GameScene extends Scene {
         this.addEntity(this.boatWake);
 
         this.player = new PlayerBoat(this, 625, 0);
+        this.player.rotation = Math.PI;
         this.addEntity(this.player);
+
+        this.confetti = new ConfettiParticles(this);
+        this.addEntity(this.confetti);
 
         this.camera.pivot.x = this.player.x - 400;
         this.camera.pivot.y = this.player.y - 300;
@@ -66,29 +77,54 @@ class GameScene extends Scene {
         this.addEntity(this.pointer);
 
         this.waypointNum = 0;
-        //this.waypointRadius = 1200;
         this.addNewWaypoint();
 
+        this.gameStarted = false;
         this.timer = 0;
         this.timerCounting = false;
         this.timerText = new Text("", {fontFamily : '\"Lucida Console\", Monaco, monospace', fontSize: 20, fill : 0xffffff, align : 'left'});
         this.timerText.position.x = 20;
         this.timerText.position.y = 20;
 
+        this.startText = new Text("Space to start",
+            {fontFamily : '\"Lucida Console\", Monaco, monospace', fontSize: 30, fill : 0xffffff, align : 'center'}
+        );
+        this.startText.position.x = 400;
+        this.startText.position.y = 400;
+        this.startText.pivot.x = Math.floor(this.startText.width * 0.5);
+        this.startText.pivot.y = Math.floor(this.startText.height * 0.5);
+        this.container.addChild(this.startText);
+        this.startGameListener = new KeyListener(" ", this.startWind.bind(this));
+
         this.introText = new Text("Left/Right to turn the boat.\nCollect all the buoys!",
             {fontFamily : '\"Lucida Console\", Monaco, monospace', fontSize: 20, fill : 0xffffff, align : 'center'});
         this.introText.position.x = 400;
         this.introText.position.y = 550;
         this.introText.pivot.x = Math.floor(this.introText.width * 0.5);
+
+        this.buoyText = new Text("   ", {fontFamily : '\"Lucida Console\", Monaco, monospace', fontSize: 20, fill : 0xffffff, align : 'right'});
+        this.buoyText.position.x = 800 - 20 - this.buoyText.width;
+        this.buoyText.position.y = 20;
+        this.updateBuoyText();
+
         this.container.addChild(this.timerText);
         this.container.addChild(this.introText);
+        this.container.addChild(this.buoyText);
+    }
+
+    startWind() {
+        this.gameStarted = true;
+        let textTween = new Tween(this.startText)
+            .to({alpha: 0.0}, 1.0)
+            .start(this.getTime());
+        let windTween = new Tween(this)
+            .to({windSpeed: 256}, 4.0)
+            .start(this.getTime());
+        this.startGameListener.unsubscribe();
     }
 
     getWindAt(x: number, y: number) {
-        //const angle = Math.atan2(y, x); - 0.5 * Math.PI;
-        //const speed = vortexWindSpeed(200, 500, Math.sqrt(x*x + y*y));
-        //return new Point(speed * Math.cos(angle), speed * Math.sin(angle));
-        const angle = Math.PI;//2 * Math.PI * this.gameTime / 60; 
+        const angle = Math.PI;
         return new Point(this.windSpeed * Math.cos(angle), this.windSpeed * Math.sin(angle));
     }
 
@@ -109,9 +145,11 @@ class GameScene extends Scene {
         this.camera.pivot.x += this.cameraSpeed.x * dt;
         this.camera.pivot.y += this.cameraSpeed.y * dt;
 
-        let x = this.camera.pivot.x - 200 + Math.random() * 1200;
-        let y = this.camera.pivot.y - 200 + Math.random() * 1000;
-        this.addEntity(new WindParticle(this, x, y));
+        if (this.gameStarted) {
+            let x = this.camera.pivot.x - 200 + Math.random() * 1200;
+            let y = this.camera.pivot.y - 200 + Math.random() * 1000;
+            this.addEntity(new WindParticle(this, x, y));
+        }
 
         let wind = this.getWindAt(this.player.x, this.player.y);
         this.seaShape.props.aMiscB = [wind.x, wind.y, this.camera.pivot.x, this.camera.pivot.y];
@@ -136,6 +174,7 @@ class GameScene extends Scene {
                 .start(this.getTime());
         }
         ++this.waypointNum;
+        this.updateBuoyText();
         this.addNewWaypoint();
     }
 
@@ -158,6 +197,9 @@ class GameScene extends Scene {
         this.pointer.target = this.currentWaypoint;
     }
 
+    updateBuoyText() {
+        this.buoyText.text = this.waypointNum.toString() + "/" + waypoints.length.toString();
+    }
 }
 
 export default GameScene;

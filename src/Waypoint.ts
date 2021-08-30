@@ -33,9 +33,8 @@ class Waypoint extends Entity {
     }
 
     update(dt: number) {
-        let radius = this.radius + Math.sqrt(4.0 * (1.0 + Math.sin(this.gameScene.getTime() * 2 * Math.PI)));
+        let radius = this.radius + 3.0 * Math.sqrt(0.5 * (1.0 + Math.sin(this.gameScene.getTime() * 2 * Math.PI)));
         this.sdfCircle.props.aMiscB = [0,0,radius,0];
-
     }
 
     updateGraphic() {
@@ -57,7 +56,7 @@ class Waypoint extends Entity {
     }
 
     destroy() {
-        for (let i = 0; i < 200; ++i) {
+        for (let i = 0; i < 500; ++i) {
             this.gameScene.confetti.addParticle(this.x, this.y);
         }
         this.gameScene.removeEntity(this);

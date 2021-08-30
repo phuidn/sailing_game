@@ -1,5 +1,6 @@
 import { Tween } from "@tweenjs/tween.js";
 import { Point } from "pixi.js";
+import { hsvColour } from "./Colours";
 import Entity from "./Engine/Entity";
 import SDFContainer, { GenericSDFGeo } from "./Engine/SDFContainer";
 import GameScene from "./GameScene";
@@ -16,6 +17,7 @@ class Pointer extends Entity {
     shape: GenericSDFGeo;
     gameScene: GameScene;
     _alpha: number;
+    _size: number;
     
     constructor(scene: GameScene, player: PlayerBoat) {
         super(scene);
@@ -24,7 +26,8 @@ class Pointer extends Entity {
         this._target = undefined;
         this.sdfGraphic = new SDFContainer(0, 0);
         this.graphic = this.sdfGraphic;
-        this.shape = new GenericSDFGeo(6, 0, 0, 34, 34, 0xFFFFFFFF, {aMiscB: [8, 0, -8, 0]});
+        this._size = 16;
+        this.shape = new GenericSDFGeo(6, 0, 0, 34, 34, 0xFFFFFFFF, {aMiscB: [0.5 * this._size, 0, 0.5 * this._size, 0]});
         this.sdfGraphic.shapes.push(this.shape);
         this._alpha = 1.0;
         this.visible = true;
@@ -33,6 +36,8 @@ class Pointer extends Entity {
 
     set target(target: Waypoint) {
         this._target = target;
+        if (target)
+            this.shape.colour = hsvColour(target.hue, 0.25, 1.0);
     }
 
     set alpha(val: number) {
@@ -75,7 +80,6 @@ class Pointer extends Entity {
             this.tweening = true;
         }
 
-
         this.x = (this.player.x + 0.5 * player2target.x);
         this.y = (this.player.y + 0.5 * player2target.y);
 
@@ -94,6 +98,12 @@ class Pointer extends Entity {
         this.y = this.player.y + 0.5 * factor * player2target.y;
 
         this.rotation = Math.atan2(player2target.y, player2target.x);
+
+        let time = this._scene.getTime();
+        let size = 0.5 * (1 + Math.sin(time * 2 * Math.PI));
+        size = 0.5 * this._size * (1 + 0.08 * size * size);
+        this.shape.props.aMiscB = [size, 0, -size, 0];
+
     }
 }
 

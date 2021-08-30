@@ -62,8 +62,8 @@ class GameScene extends Scene {
         this.boatWake = new WakeParticles(this);
         this.addEntity(this.boatWake);
 
-        this.player = new PlayerBoat(this, 625, 0);
-        this.player.rotation = Math.PI;
+        this.player = new PlayerBoat(this, 800, 400);
+        this.player.rotation = 1.5 * Math.PI;
         this.addEntity(this.player);
 
         this.confetti = new ConfettiParticles(this);
@@ -154,8 +154,11 @@ class GameScene extends Scene {
         let wind = this.getWindAt(this.player.x, this.player.y);
         this.seaShape.props.aMiscB = [wind.x, wind.y, this.camera.pivot.x, this.camera.pivot.y];
 
-        if (this.timerCounting)
+        if (this.timerCounting) {
             this.timer += dt;
+            this.windSpeed = 256 + 64 * (1 - Math.cos(this.timer * 2 * Math.PI / 60)) + 32 * Math.sin(this.timer * 2 * Math.PI / 10);
+
+        }
         this.timerText.text = (Math.round(this.timer * 100) / 100).toFixed(2) + "s";
     }
 
